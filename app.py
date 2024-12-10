@@ -1,13 +1,13 @@
 from aws_cdk import (
-    core,
+    Stack,
     aws_lambda as _lambda,
     aws_events as events,
-    aws_events_targets as targets
+    aws_events_targets as targets,
 )
+from constructs import Construct
 
-class EventBridgeLambdaStack(core.Stack):
-
-    def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
+class EventBridgeLambdaStack(Stack):
+    def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         # Define the Lambda function
@@ -16,15 +16,7 @@ class EventBridgeLambdaStack(core.Stack):
             "EventBridgeHandler",
             runtime=_lambda.Runtime.PYTHON_3_9,
             handler="lambda_function.lambda_handler",
-            code=_lambda.Code.from_inline(
-                """
-import json
-
-def lambda_handler(event, context):
-    print("Event received:", json.dumps(event))
-    return {"statusCode": 200, "body": "Event processed successfully"}
-                """
-            ),
+            code=_lambda.Code.from_asset("cmd")
         )
 
         # Define an EventBridge rule
@@ -39,6 +31,10 @@ def lambda_handler(event, context):
         # Add the Lambda function as a target for the rule
         event_rule.add_target(targets.LambdaFunction(lambda_function))
 
-app = core.App()
+# Entry point for the CDK application
+from aws_cdk import App
+
+app = App()
 EventBridgeLambdaStack(app, "EventBridgeLambdaStack")
 app.synth()
+
