@@ -1,28 +1,44 @@
-#!/usr/bin/env python3
-import os
+from aws_cdk import (
+    core,
+    aws_lambda as _lambda,
+    aws_events as events,
+    aws_events_targets as targets
+)
 
-import aws_cdk as cdk
+class EventBridgeLambdaStack(core.Stack):
 
-from python_cdk.python_cdk_stack import PythonCdkStack
+    def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
+        super().__init__(scope, id, **kwargs)
 
+        # Define the Lambda function
+        lambda_function = _lambda.Function(
+            self,
+            "EventBridgeHandler",
+            runtime=_lambda.Runtime.PYTHON_3_9,
+            handler="lambda_function.lambda_handler",
+            code=_lambda.Code.from_inline(
+                """
+import json
 
-app = cdk.App()
-PythonCdkStack(app, "PythonCdkStack",
-    # If you don't specify 'env', this stack will be environment-agnostic.
-    # Account/Region-dependent features and context lookups will not work,
-    # but a single synthesized template can be deployed anywhere.
+def lambda_handler(event, context):
+    print("Event received:", json.dumps(event))
+    return {"statusCode": 200, "body": "Event processed successfully"}
+                """
+            ),
+        )
 
-    # Uncomment the next line to specialize this stack for the AWS Account
-    # and Region that are implied by the current CLI configuration.
+        # Define an EventBridge rule
+        event_rule = events.Rule(
+            self,
+            "EventRule",
+            event_pattern={
+                "source": ["my.custom.source"]
+            }
+        )
 
-    #env=cdk.Environment(account=os.getenv('CDK_DEFAULT_ACCOUNT'), region=os.getenv('CDK_DEFAULT_REGION')),
+        # Add the Lambda function as a target for the rule
+        event_rule.add_target(targets.LambdaFunction(lambda_function))
 
-    # Uncomment the next line if you know exactly what Account and Region you
-    # want to deploy the stack to. */
-
-    #env=cdk.Environment(account='123456789012', region='us-east-1'),
-
-    # For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
-    )
-
+app = core.App()
+EventBridgeLambdaStack(app, "EventBridgeLambdaStack")
 app.synth()
