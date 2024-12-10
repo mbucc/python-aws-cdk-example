@@ -34,7 +34,7 @@ Test
 -----------------
 
     export AWS_REGION=us-east-1
-    $(aws configure export-credentials --profile dev-gj --format env)
+    $(aws configure export-credentials --profile research --format env)
     aws events put-events --entries '[                               
       {
         "Source": "my.custom.source",
