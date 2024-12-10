@@ -14,5 +14,39 @@ Setup
 
     npm install -g aws-cdk
     cdk init app --language python
-    pip install aws-cdk.aws-lambda aws-cdk.aws-events aws-cdk.aws-events-targets
+    pip install aws-cdk-lib constructs
 
+
+
+Deploy
+------------------
+
+
+    aws sso login --profile research
+    cdk deploy --profile research
+
+
+This assumes you have run `cdk bootstrap` in the account you
+log in to.
+
+
+Test
+-----------------
+
+    export AWS_REGION=us-east-1
+    $(aws configure export-credentials --profile dev-gj --format env)
+    aws events put-events --entries '[                               
+      {
+        "Source": "my.custom.source",
+        "DetailType": "MyEvent",
+        "Detail": "{\"key1\": \"value1\"}"
+      }
+    ]'
+    {
+        "FailedEntryCount": 0,
+        "Entries": [
+            {
+                "EventId": "d173546f-f273-bbf0-6632-b4202b360da8"
+            }
+        ]
+    }
